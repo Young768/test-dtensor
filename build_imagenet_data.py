@@ -171,6 +171,7 @@ def _float_feature(value):
 
 
 def _bytes_feature(value):
+  value = str.encode(value)
   """Wrapper for inserting bytes features into Example proto."""
   return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
 
