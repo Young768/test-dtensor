@@ -314,7 +314,7 @@ def _process_image(filename, coder):
     width: integer, image width in pixels.
   """
   # Read the image file.
-  image_data = tf.gfile.GFile(filename, 'r').read()
+  image_data = tf.gfile.GFile(filename, 'rb').read()
 
   # Clean the dirty data.
   if _is_png(filename):
