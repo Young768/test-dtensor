@@ -626,7 +626,7 @@ def _build_synset_lookup(imagenet_metadata_file):
   synset_to_human = {}
   for l in lines:
     if l:
-      parts = l.strip().split(b'\t')
+      parts = l.strip().split('\t')
       assert len(parts) == 2
       synset = parts[0]
       human = parts[1]
@@ -662,7 +662,7 @@ def _build_bounding_box_lookup(bounding_box_file):
   num_image = 0
   for l in lines:
     if l:
-      parts = l.split(b',')
+      parts = l.split(',')
       assert len(parts) == 5, ('Failed to parse: %s' % l)
       filename = parts[0]
       xmin = float(parts[1])
