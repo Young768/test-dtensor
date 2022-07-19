@@ -622,7 +622,7 @@ def _build_synset_lookup(imagenet_metadata_file):
     Dictionary of synset to human labels, such as:
       'n02119022' --> 'red fox, Vulpes vulpes'
   """
-  lines = tf.gfile.GFile(imagenet_metadata_file, 'rb').readlines()
+  lines = tf.gfile.GFile(imagenet_metadata_file, 'r').readlines()
   synset_to_human = {}
   for l in lines:
     if l:
