@@ -203,9 +203,9 @@ def _convert_to_example(filename, image_buffer, label, synset, human, bbox,
     [l.append(point) for l, point in zip([xmin, ymin, xmax, ymax], b)]
     # pylint: enable=expression-not-assigned
 
-  colorspace = 'RGB'
+  colorspace = b'RGB'
   channels = 3
-  image_format = 'JPEG'
+  image_format = b'JPEG'
 
   example = tf.train.Example(features=tf.train.Features(feature={
       'image/height': _int64_feature(height),
