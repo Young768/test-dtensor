@@ -171,7 +171,6 @@ def _float_feature(value):
 
 
 def _bytes_feature(value):
-  value = str.encode(value)
   """Wrapper for inserting bytes features into Example proto."""
   return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
 
@@ -499,7 +498,7 @@ def _find_image_files(data_dir, labels_file):
   """
   print('Determining list of input files and labels from %s.' % data_dir)
   challenge_synsets = [
-      l.strip() for l in tf.gfile.GFile(labels_file, 'r').readlines()
+      l.strip() for l in tf.gfile.GFile(labels_file, 'rb').readlines()
   ]
 
   labels = []
