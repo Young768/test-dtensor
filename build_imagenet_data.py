@@ -221,7 +221,7 @@ def _convert_to_example(filename, image_buffer, label, synset, human, bbox,
       'image/object/bbox/ymax': _float_feature(ymax),
       'image/object/bbox/label': _int64_feature([label] * len(xmin)),
       'image/format': _bytes_feature(image_format),
-      'image/filename': _bytes_feature(os.path.basename(filename)),
+      'image/filename': _bytes_feature(os.path.basename(str.encode(filename))),
       'image/encoded': _bytes_feature(image_buffer)}))
   return example
 
@@ -314,7 +314,7 @@ def _process_image(filename, coder):
     width: integer, image width in pixels.
   """
   # Read the image file.
-  image_data = tf.gfile.GFile(filename, 'r').read()
+  image_data = tf.gfile.GFile(filename, 'rb').read()
 
   # Clean the dirty data.
   if _is_png(filename):
@@ -498,7 +498,7 @@ def _find_image_files(data_dir, labels_file):
   """
   print('Determining list of input files and labels from %s.' % data_dir)
   challenge_synsets = [
-      l.strip() for l in tf.gfile.GFile(labels_file, 'r').readlines()
+      l.strip() for l in tf.gfile.GFile(labels_file, 'rb').readlines()
   ]
 
   labels = []
@@ -622,7 +622,7 @@ def _build_synset_lookup(imagenet_metadata_file):
     Dictionary of synset to human labels, such as:
       'n02119022' --> 'red fox, Vulpes vulpes'
   """
-  lines = tf.gfile.GFile(imagenet_metadata_file, 'r').readlines()
+  lines = tf.gfile.GFile(imagenet_metadata_file, 'rb').readlines()
   synset_to_human = {}
   for l in lines:
     if l:
@@ -656,7 +656,7 @@ def _build_bounding_box_lookup(bounding_box_file):
     Dictionary mapping image file names to a list of bounding boxes. This list
     contains 0+ bounding boxes.
   """
-  lines = tf.gfile.GFile(bounding_box_file, 'r').readlines()
+  lines = tf.gfile.GFile(bounding_box_file, 'rb').readlines()
   images_to_bboxes = {}
   num_bbox = 0
   num_image = 0
