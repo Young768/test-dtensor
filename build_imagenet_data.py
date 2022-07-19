@@ -314,7 +314,7 @@ def _process_image(filename, coder):
     width: integer, image width in pixels.
   """
   # Read the image file.
-  image_data = tf.gfile.GFile(filename, 'rb').read()
+  image_data = tf.gfile.GFile(filename, 'r').read()
 
   # Clean the dirty data.
   if _is_png(filename):
@@ -498,7 +498,7 @@ def _find_image_files(data_dir, labels_file):
   """
   print('Determining list of input files and labels from %s.' % data_dir)
   challenge_synsets = [
-      l.strip() for l in tf.gfile.GFile(labels_file, 'rb').readlines()
+      l.strip() for l in tf.gfile.GFile(labels_file, 'r').readlines()
   ]
 
   labels = []
