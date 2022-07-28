@@ -780,8 +780,7 @@ for epoch in range(1):
                 images, labels, image_layout, label_layout)
             t_x = (images, labels)
             total_loss += train_step(t_x)
-        if global_steps > 10:
-            break
+
         if global_steps % log_steps == 0:
             timestamp = time.time()
             elapsed_time = timestamp - start_time
