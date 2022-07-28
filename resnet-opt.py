@@ -756,7 +756,7 @@ def repack_batch(x, y, x_layout, y_layout):
   y = pack_tf_tensor(y, y_layout)
   return x, y
 
-for epoch in range(num_epochs):
+for epoch in range(1):
   print("============================")
   print("Epoch: ", epoch)
   total_loss = 0.0
@@ -766,26 +766,30 @@ for epoch in range(num_epochs):
   epoch_start = time.time()
   train_iter = iter(train_input)
   valid_iter = iter(valid_input)
-  for _ in range(nstep_per_epoch):
-    global_steps += 1
-    if global_steps == 1:
-        start_time = time.time()
-    x = next(train_iter)
-    images, labels = x
-    images, labels = repack_batch(
-        images, labels, image_layout, label_layout)
-    t_x = (images, labels)
-    total_loss += train_step(t_x)
-
-    if global_steps % log_steps == 0:
-        timestamp = time.time()
-        elapsed_time = timestamp - start_time
-        examples_per_second = \
-            (batch_size * log_steps) / elapsed_time
-        print("global_step: %d images_per_sec: %.1f" % (global_steps,
-                                                        examples_per_second))
-        start_time = timestamp
-    num_batches += 1
+  with tf.profiler.experimental.Profile(
+          os.path.join('logdir', datetime.datetime.now().strftime("%Y%m%d_%H%M"))):
+      for _ in range(nstep_per_epoch):
+        global_steps += 1
+        if global_steps == 1:
+            start_time = time.time()
+        with tf.profiler.experimental.Trace("train_step", step_num=global_steps):
+            x = next(train_iter)
+            images, labels = x
+            images, labels = repack_batch(
+                images, labels, image_layout, label_layout)
+            t_x = (images, labels)
+            total_loss += train_step(t_x)
+        if global_steps > 10:
+            break
+        if global_steps % log_steps == 0:
+            timestamp = time.time()
+            elapsed_time = timestamp - start_time
+            examples_per_second = \
+                (batch_size * log_steps) / elapsed_time
+            print("global_step: %d images_per_sec: %.1f" % (global_steps,
+                                                            examples_per_second))
+            start_time = timestamp
+        num_batches += 1
 
   train_loss = total_loss / num_batches
 
