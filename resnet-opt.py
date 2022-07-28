@@ -9,6 +9,7 @@ import os
 import sys
 import time
 import argparse
+import numpy as np
 
 layers = tf.keras.layers
 
