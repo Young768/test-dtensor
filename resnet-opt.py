@@ -699,43 +699,6 @@ def valid_step(inputs):
 
     return results
 
-def pack_dtensor_inputs(images, labels, image_layout, label_layout):
-  num_local_devices = image_layout.mesh.num_local_devices()
-  images = tf.split(images, num_local_devices)
-  labels = tf.split(labels, num_local_devices)
-  images = dtensor.pack(images, image_layout)
-  labels = dtensor.pack(labels, label_layout)
-  return  images, labels
-
-def repack_local_tensor(x, layout):
-  """Repacks a local Tensor-like to a DTensor with layout.
-
-  This function assumes a single-client application.
-  """
-  x = tf.convert_to_tensor(x)
-  sharded_dims = []
-
-  # For every sharded dimension, use tf.split to split the along the dimension.
-  # The result is a nested list of split-tensors in queue[0].
-  queue = [x]
-  for axis, dim in enumerate(layout.sharding_specs):
-    if dim == dtensor.UNSHARDED:
-      continue
-    num_splits = layout.shape[axis]
-    queue = tf.nest.map_structure(lambda x: tf.split(x, num_splits, axis=axis), queue)
-    sharded_dims.append(dim)
-
-  # Now we can build the list of component tensors by looking up the location in
-  # the nested list of split-tensors created in queue[0].
-  components = []
-  for locations in layout.mesh.local_device_locations():
-    t = queue[0]
-    for dim in sharded_dims:
-      split_index = locations[dim]  # Only valid on single-client mesh.
-      t = t[split_index]
-    components.append(t)
-
-  return dtensor.pack(components, layout)
 
 def _split(value, splits, axis=0):
   children = tf.split(value, splits[0], axis=axis)
@@ -757,7 +720,7 @@ def repack_batch(x, y, x_layout, y_layout):
   y = pack_tf_tensor(y, y_layout)
   return x, y
 
-for epoch in range(1):
+for epoch in range(num_epochs):
   print("============================")
   print("Epoch: ", epoch)
   total_loss = 0.0
