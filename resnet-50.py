@@ -581,6 +581,7 @@ def image_set(filenames, batch_size, height, width, training=False,
             global_batch_size=batch_size*8,
             dataset_already_batched = True,
             mesh=mesh,
+            batch_dim='batch',
             layouts=(image_layout, label_layout))
         return ds
 
