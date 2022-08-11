@@ -514,6 +514,8 @@ def _parse_and_preprocess_image_record(record, height, width,
                     seed=11 * (1 + hvd.rank()) if deterministic else None)
     return image, label
 
+image_layout = dtensor.Layout.batch_sharded(mesh, 'batch', rank=4)
+label_layout = dtensor.Layout.batch_sharded(mesh, 'batch', rank=2)
 
 def image_set(filenames, batch_size, height, width, training=False,
               distort_color=False, num_threads=10, nsummary=10,
@@ -574,7 +576,12 @@ def image_set(filenames, batch_size, height, width, training=False,
         options = tf.data.Options()
         options.experimental_slack = True
         ds = ds.with_options(options)
-
+        ds = dtensor.DTensorDataset(
+            dataset=ds,
+            global_batch_size=batch_size*8,
+            dataset_already_batched = True,
+            mesh=mesh,
+            layouts=(image_layout, label_layout))
         return ds
 
 
@@ -758,13 +765,12 @@ def repack_batch(x, y, x_layout, y_layout):
 #  y = repack_local_tensor(y, y_layout)
 #  return x, y
 
-image_layout = dtensor.Layout.batch_sharded(mesh, 'batch', rank=4)
-label_layout = dtensor.Layout.batch_sharded(mesh, 'batch', rank=2)
-image_input, label_input = train_input
-image_dataset = dtensor.DTensorDataset(dataset=image_input, global_batch_size=batch_size,
-                                   mesh=mesh, layouts=image_layout,batch_dim='batch')
-label_dataset = dtensor.DTensorDataset(dataset=label_input, global_batch_size=batch_size,
-                                   mesh=mesh, layouts=label_layout,batch_dim='batch')
+
+#print(train_input)
+#image_dataset = dtensor.DTensorDataset(dataset=image_input, global_batch_size=batch_size,
+#                                   mesh=mesh, layouts=image_layout,batch_dim='batch')
+#label_dataset = dtensor.DTensorDataset(dataset=label_input, global_batch_size=batch_size,
+#                                   mesh=mesh, layouts=label_layout,batch_dim='batch')
 for epoch in range(num_epochs):
   print("============================")
   print("Epoch: ", epoch)
@@ -773,9 +779,9 @@ for epoch in range(num_epochs):
   #train_top1.reset_states()
   #train_top5.reset_states()
   epoch_start = time.time()
-  image_iter = iter(image_dataset)
-  label_iter = iter(label_dataset)
-  #train_iter = iter(train_input)
+  #image_iter = iter(image_dataset)
+  #label_iter = iter(label_dataset)
+  train_iter = iter(train_input)
   #valid_iter = iter(valid_input)
   for _ in range(nstep_per_epoch):
     global_steps += 1
