@@ -787,12 +787,12 @@ for epoch in range(num_epochs):
     global_steps += 1
     if global_steps == 1:
         start_time = time.time()
-    #x = next(train_iter)
-    images, labels = next(image_iter), next(label_iter)
+    x = next(train_iter)
+    #images, labels = next(image_iter), next(label_iter)
     #images, labels = repack_batch(
     #    images, labels, image_layout, label_layout)
-    t_x = (images, labels)
-    total_loss += train_step(t_x)
+    #t_x = (images, labels)
+    total_loss += train_step(x)
 
     if global_steps % log_steps == 0:
         timestamp = time.time()
