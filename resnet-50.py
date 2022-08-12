@@ -54,7 +54,7 @@ def parse_cmdline(init_vals):
   vals['num_iter'] = FLAGS.num_iter
   vals['batch_size'] = FLAGS.batch_size
   vals['precision'] = FLAGS.precision
-  vals['num_gpu'] = FLAGS.precision
+  vals['num_gpu'] = FLAGS.num_gpu
 
   return vals
 
