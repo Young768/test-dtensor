@@ -20,8 +20,64 @@ if gpus:
   logical_gpus = tf.config.list_logical_devices('GPU')
   print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
 
-DEVICES = [f'GPU:{i}' for i in range(8)]
-mesh = dtensor.create_mesh([("batch", 8)], devices=DEVICES)
+def parse_cmdline(init_vals):
+  f = argparse.ArgumentDefaultsHelpFormatter
+  p = argparse.ArgumentParser(formatter_class=f)
+
+  p.add_argument('--data_dir',
+                 default=init_vals.get('data_dir'),
+                 required=False,
+                 help="""Path to dataset in TFRecord format (aka Example
+                 protobufs). Files should be named 'train-*' and
+                 'validation-*'.""")
+  p.add_argument('-i', '--num_iter', type=int,
+                 default=init_vals.get('num_iter'),
+                 required=False,
+                 help="""Number of batches or epochs to run.""")
+  p.add_argument('-b', '--batch_size', type=int,
+                 default=init_vals.get('batch_size'),
+                 required=False,
+                 help="""Size of each minibatch.""")
+  p.add_argument('--precision', choices=['fp32', 'fp16'],
+                 default=init_vals.get('precision'),
+                 required=False,
+                 help="""Select single or half precision arithmetic.""")
+  p.add_argument('-n', '--num_gpu', type=int,
+                 default=init_vals.get('num_gpu'),
+                 required=False,
+                 help="""Number of GPUs""")
+
+  FLAGS, unknown_args = p.parse_known_args()
+
+  vals = init_vals
+  vals['data_dir'] = FLAGS.data_dir
+  vals['num_iter'] = FLAGS.num_iter
+  vals['batch_size'] = FLAGS.batch_size
+  vals['precision'] = FLAGS.precision
+  vals['num_gpu'] = FLAGS.precision
+
+  return vals
+
+default_args = {
+    'data_dir' : None,
+    'num_iter' : 300,
+    'batch_size' : 128,
+    'precision' : 'fp32',
+    'num_gpu' : 8,
+}
+
+
+args = parse_cmdline(default_args)
+data_dir = args['data_dir']
+num_epochs = args['num_iter']
+batch_size = args['batch_size']
+precision = args['precision']
+num_gpu = args['num_gpu']
+loss_scale = 128.0
+nstep_per_epoch = num_epochs
+
+DEVICES = [f'GPU:{i}' for i in range(num_gpu)]
+mesh = dtensor.create_mesh([("batch", num_gpu)], devices=DEVICES)
 
 tf.keras.backend.experimental.enable_tf_random_generator()
 tf.keras.utils.set_random_seed(1337)
@@ -578,7 +634,7 @@ def image_set(filenames, batch_size, height, width, training=False,
         ds = ds.with_options(options)
         ds = dtensor.DTensorDataset(
             dataset=ds,
-            global_batch_size=batch_size*8,
+            global_batch_size=batch_size*num_gpu,
             dataset_already_batched = True,
             mesh=mesh,
             batch_dim='batch',
@@ -594,54 +650,6 @@ train_idx_files = None
 valid_idx_files = None
 
 
-def parse_cmdline(init_vals):
-  f = argparse.ArgumentDefaultsHelpFormatter
-  p = argparse.ArgumentParser(formatter_class=f)
-
-  p.add_argument('--data_dir',
-                 default=init_vals.get('data_dir'),
-                 required=False,
-                 help="""Path to dataset in TFRecord format (aka Example
-                 protobufs). Files should be named 'train-*' and
-                 'validation-*'.""")
-  p.add_argument('-i', '--num_iter', type=int,
-                 default=init_vals.get('num_iter'),
-                 required=False,
-                 help="""Number of batches or epochs to run.""")
-  p.add_argument('-b', '--batch_size', type=int,
-                 default=init_vals.get('batch_size'),
-                 required=False,
-                 help="""Size of each minibatch.""")
-  p.add_argument('--precision', choices=['fp32', 'fp16'],
-                 default=init_vals.get('precision'),
-                 required=False,
-                 help="""Select single or half precision arithmetic.""")
-
-  FLAGS, unknown_args = p.parse_known_args()
-
-  vals = init_vals
-  vals['data_dir'] = FLAGS.data_dir
-  vals['num_iter'] = FLAGS.num_iter
-  vals['batch_size'] = FLAGS.batch_size
-  vals['precision'] = FLAGS.precision
-
-  return vals
-
-default_args = {
-    'data_dir' : None,
-    'num_iter' : 300,
-    'batch_size' : 128,
-    'precision' : 'fp32',
-}
-
-
-args = parse_cmdline(default_args)
-data_dir = args['data_dir']
-num_epochs = args['num_iter']
-batch_size = args['batch_size']
-precision = args['precision']
-loss_scale = 128.0
-nstep_per_epoch = num_epochs
 
 if precision == 'fp16':
     policy = tf.keras.experimental.mixed_precision.Policy('mixed_float16')
@@ -799,7 +807,7 @@ for epoch in range(num_epochs):
         timestamp = time.time()
         elapsed_time = timestamp - start_time
         examples_per_second = \
-            (batch_size * 8 * log_steps) / elapsed_time
+            (batch_size * num_gpu * log_steps) / elapsed_time
         print("global_step: %d images_per_sec: %.1f" % (global_steps,
                                                         examples_per_second))
         start_time = timestamp
