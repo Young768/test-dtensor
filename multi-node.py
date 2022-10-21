@@ -4,7 +4,7 @@ import os
 
 rank=int(os.environ['DTENSOR_CLIENT_ID'])
 size=int(os.environ['DTENSOR_NUM_CLIENTS'])
-
+print("rank: ", rank, " size: ", size)
 gpus = tf.config.experimental.list_physical_devices('GPU')
 for gpu in gpus:
     tf.config.experimental.set_memory_growth(gpu, True)
