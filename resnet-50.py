@@ -13,6 +13,8 @@ import numpy as np
 
 layers = tf.keras.layers
 
+os.environ["DTENSOR_ENABLE_COMBINE_ALL_REDUCES_OPTIMIZATION"] = "1"
+
 gpus = tf.config.list_physical_devices('GPU')
 if gpus:
   for gpu in gpus:
