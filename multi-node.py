@@ -4,13 +4,14 @@ import os
 
 rank=int(os.environ['DTENSOR_CLIENT_ID'])
 size=int(os.environ['DTENSOR_NUM_CLIENTS'])
+os.environ['CUDA_VISIBLE_DEVICES'] = str(rank)
 print("rank: ", rank, " size: ", size)
 gpus = tf.config.experimental.list_physical_devices('GPU')
 for gpu in gpus:
     tf.config.experimental.set_memory_growth(gpu, True)
 #if gpus:
 #    tf.config.experimental.set_visible_devices(gpus[rank], 'GPU')
-os.environ['CUDA_VISIBLE_DEVICES'] = str(rank)
+
 visible_devices = tf.config.experimental.get_visible_devices()
 print(visible_devices)
 
