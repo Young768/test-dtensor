@@ -20,7 +20,7 @@ mesh_1d = dtensor.create_distributed_mesh([('x', size)], device_type='GPU')
 print('mesh_1d',mesh_1d)
 layout = dtensor.Layout(['x', dtensor.UNSHARDED], mesh_1d)
 
-local_component = tf.range(rank*2, 2+rank*2)
+local_component = tf.range(float(rank*2), float(2+rank*2))
 local_component = tf.reshape(local_component, [1, 2])
 print('local_component', local_component)
 
