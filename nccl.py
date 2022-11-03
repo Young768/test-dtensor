@@ -16,9 +16,6 @@ import numpy as np
 
 os.environ['DTENSOR_GPU_USE_NCCL_COMMUNICATION'] = '1'
 
-dtensor.initialize_accelerator_system('GPU')
-api._set_dtensor_device(dtensor_device.DTensorDevice(meshes=[], is_async=False))
- 
 
 layers = tf.keras.layers
 
@@ -26,11 +23,16 @@ from tensorflow.python.eager import context
 
 gpus = tf.config.list_physical_devices('GPU')
 if gpus:
-  #for gpu in gpus:
-  #  tf.config.experimental.set_memory_growth(gpu, True)
+  for gpu in gpus:
+    tf.config.experimental.set_memory_growth(gpu, True)
+
+dtensor.initialize_accelerator_system('GPU')
+api._set_dtensor_device(dtensor_device.DTensorDevice(meshes=[], is_async=False))
+
+if gpus:
   logical_gpus = tf.config.list_logical_devices('GPU')
   print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
-
+ 
 def parse_cmdline(init_vals):
   f = argparse.ArgumentDefaultsHelpFormatter
   p = argparse.ArgumentParser(formatter_class=f)
@@ -814,8 +816,8 @@ for epoch in range(num_epochs):
     #images, labels = repack_batch(
     #    images, labels, image_layout, label_layout)
     if True: # fake data
-      images = tf.ones((16, 224, 224, 3), tf.float32)
-      labels = tf.ones((16, 1), tf.float32)
+      images = tf.ones((32, 224, 224, 3), tf.float32)
+      labels = tf.ones((32, 1), tf.float32)
       images = dtensor.pack([images]*8, image_layout)
       labels = dtensor.pack([labels]*8, label_layout)
       x = (images, labels)
