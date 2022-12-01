@@ -20,7 +20,7 @@ if gpus:
   for gpu in gpus:
     tf.config.experimental.set_memory_growth(gpu, True)
 
-  print(len(gpus), "Physical GPUs,", dtensor.num_local_devices('GPU'), "Logical GPUs")
+  print(len(gpus), "Physical GPUs,", dtensor.num_local_devices('GPU'), "Configured Local GPUs")
   dtensor.initialize_accelerator_system('GPU')
 
 def parse_cmdline(init_vals):
