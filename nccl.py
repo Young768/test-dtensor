@@ -11,17 +11,17 @@ import time
 import argparse
 import numpy as np
 
-layers = tf.keras.layers
+os.environ['DTENSOR_GPU_USE_NCCL_COMMUNICATION'] = '1'
 
-from tensorflow.python.eager import context
-context.context().configure_collective_ops(use_nccl_communication=True)
+layers = tf.keras.layers
 
 gpus = tf.config.list_physical_devices('GPU')
 if gpus:
   for gpu in gpus:
     tf.config.experimental.set_memory_growth(gpu, True)
-  logical_gpus = tf.config.list_logical_devices('GPU')
-  print(len(gpus), "Physical GPUs,", len(logical_gpus), "Logical GPUs")
+
+  print(len(gpus), "Physical GPUs,", dtensor.num_local_devices('GPU'), "Configured Local GPUs")
+  dtensor.initialize_accelerator_system('GPU')
 
 def parse_cmdline(init_vals):
   f = argparse.ArgumentDefaultsHelpFormatter
